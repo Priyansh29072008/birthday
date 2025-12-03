@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birthday Quest: The Grand Surprise</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        
+        @import url('https://fonts.googleapis.com/css2?family=Shrikhand&family=Inter:wght@400;700;900&display=swap');
+
+        :root {
+            --primary-color: #ff527b; 
+            --secondary-color: #ffdd4a; 
+            --background-color: #1a1a2e; 
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            color: white;
+        }
+
+        .anime-text {
+            font-family: 'Shrikhand', cursive;
+            text-shadow: 0 0 5px var(--secondary-color), 0 0 10px var(--primary-color);
+        }
+
+        .gift-box-container {
+            cursor: pointer;
+            perspective: 1000px;
+            transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+            position: relative;
+        }
+
+        
+        .gift-base, .gift-lid {
+            transition: transform 1.5s ease-out, box-shadow 0.3s;
+            background-color: #a32d56; 
+            border: 4px solid #7c1a3b;
+        }
+
+        .gift-ribbon-vertical {
+            background-color: var(--secondary-color);
+            box-shadow: 0 0 10px rgba(255, 221, 74, 0.8);
+        }
+
+        .gift-lid {
+            z-index: 20;
+            position: absolute;
+            top: -10px;
+            transform-origin: bottom center;
+        }
+
+        
+        .gift-box-container.opened .gift-lid {
+            transform: rotateX(80deg) translateZ(100px) translateY(-50px);
+            opacity: 0;
+        }
+
+        
+        .gift-box-container:active {
+            transform: scale(0.98);
+        }
+
+        @keyframes sparkle {
+            0%, 100% { box-shadow: 0 0 10px var(--secondary-color), 0 0 20px var(--primary-color); }
+            50% { box-shadow: 0 0 30px var(--secondary-color), 0 0 50px var(--primary-color); }
+        }
+
+        .sparkle-button {
+            animation: sparkle 1.5s infinite alternate;
+            background: linear-gradient(135deg, var(--primary-color), #ff8a65);
+        }
+
+        
+        .hidden-content {
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .visible-content {
+            opacity: 1;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="app-container" class="flex flex-col items-center justify-center p-6 w-11/12 max-w-xl mx-auto text-center rounded-xl bg-gray-800/80 shadow-2xl backdrop-blur-sm">
+
+        
+        <div id="gift-stage" class="flex flex-col items-center">
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-8 anime-text text-white">
+                Happy Birthday! Dear Sanskar.......
+            </h1>
+
+            
+            <div id="gift-clickable" class="gift-box-container w-48 h-48 md:w-64 md:h-64 mb-10 transform hover:scale-105" onclick="handleClickGift()">
+
+                
+                <div class="gift-base w-full h-full rounded-xl shadow-2xl relative">
+                    
+                    <div class="gift-ribbon-vertical absolute top-0 left-1/2 -translate-x-1/2 w-8 h-full"></div>
+                    
+                    <div class="gift-ribbon-vertical absolute top-1/2 -translate-y-1/2 h-8 w-full"></div>
+                    <div class="absolute inset-0 flex items-center justify-center text-4xl text-black font-bold opacity-75">
+                        <span class="z-30 anime-text text-black">CLICK ME</span>
+                    </div>
+                </div>
+
+                
+                <div class="gift-lid w-[105%] h-1/4 rounded-xl shadow-2xl left-[-2.5%] top-[-10%]">
+                    
+                    <div class="gift-ribbon-vertical absolute top-0 left-1/2 -translate-x-1/2 w-8 h-full"></div>
+                    
+                    <div class="gift-ribbon-vertical absolute top-1/2 -translate-y-1/2 h-8 w-full"></div>
+                </div>
+
+            </div>
+
+            <p id="initial-instruction" class="text-lg text-gray-300 font-medium">Click on the mysterious gift box to begin your birthday adventure.</p>
+        </div>
+
+
+        
+        <div id="message-stage" class="hidden-content w-full">
+            <div id="card-content" class="bg-white p-8 rounded-xl shadow-inner text-gray-900 border-4 border-dashed border-primary-color min-h-[200px] flex flex-col justify-between">
+                <div>
+                    <h2 id="message-title" class="text-3xl font-bold mb-4 anime-text text-primary-color"></h2>
+                    <p id="message-text" class="text-lg font-medium leading-relaxed"></p>
+                </div>
+                <button id="next-button"
+                    class="mt-6 mx-auto w-4/5 py-3 rounded-full text-xl font-bold shadow-lg sparkle-button text-white transition transform hover:scale-105 active:scale-95"
+                    onclick="handleNextStep()">
+                    Continue
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+       
+        let currentStep = 0;
+        let isAnimating = false;
+
+        const giftStage = document.getElementById('gift-stage');
+        const giftClickable = document.getElementById('gift-clickable');
+        const messageStage = document.getElementById('message-stage');
+        const messageTitle = document.getElementById('message-title');
+        const messageText = document.getElementById('message-text');
+        const nextButton = document.getElementById('next-button');
+
+        
+        const steps = [
+           
+            {
+                title: "🎁 Hey Brother just a small line for you",
+                text: "Congratulations, Birthday Star! Happy Birthday! You’ve earned a full day 🛋️ of doing absolutely nothing… again.",
+                button: "Reveal Next Important Message"
+            },
+            
+            {
+                title: "🥳🥳Party kab De rha ye bta bas ab🥳🥳",
+                text: "Dekh bhai mujhe to bas ab party chhiye, jaise hi ayega bine bole party de dena 🤣🤣🤣 ",
+                button: "Next Message!"
+            },
+            
+            {
+                title: "🎉 Final a special message from my side 🎉",
+                text: "If laziness was a sport, you'd have a gold medal and no energy to collect it. \n Now, another candle gets added to your special day every year, but the light emitting from those candles also increases. Keep spreading joy and happiness all around. Happy Birthday!",
+                button: "Start the Party! (Finished)"
+            }
+        ];
+
+    
+        function handleClickGift() {
+            if (isAnimating) return;
+
+            isAnimating = true;
+            document.getElementById('initial-instruction').textContent = 'Unboxing... wait for it!';
+
+            
+            giftClickable.classList.add('opened');
+
+            setTimeout(() => {
+                giftStage.classList.add('hidden');
+                messageStage.classList.remove('hidden-content');
+                messageStage.classList.add('visible-content');
+                isAnimating = false;
+                currentStep = 0; 
+                updateMessageContent();
+            }, 1800); 
+        }
+
+        
+        function handleNextStep() {
+            if (isAnimating) return;
+
+            
+            if (currentStep >= steps.length - 1) {
+             
+                nextButton.textContent = "Thank you! 15th ko party de dena!";
+                nextButton.classList.remove('sparkle-button');
+                nextButton.classList.add('bg-green-500', 'hover:bg-green-600');
+                console.log("End of quest!");
+                return;
+            }
+
+            
+            currentStep++;
+            updateMessageContent();
+        }
+
+        
+        function updateMessageContent() {
+            const stepData = steps[currentStep];
+
+            messageTitle.textContent = stepData.title;
+            messageText.innerHTML = stepData.text.replace(/\n/g, '<br>'); 
+            nextButton.textContent = stepData.button;
+        }
+
+        
+        window.onload = function() {
+            
+            console.log("Birthday App Initialized.");
+        };
+
+    </script>
+</body>
+</html>
